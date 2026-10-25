@@ -114,19 +114,23 @@
     .step {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-end;
       height: 100vh;
       height: 100svh;
       padding: var(--header-h) var(--gutter) max(20px, env(safe-area-inset-bottom));
       scroll-snap-align: start;
       scroll-snap-stop: always;
     }
-    .step > .card { margin-top: auto; }
 
+    /* Headline and body stay on screen; only the cards scroll */
     .copy {
+      position: fixed;
+      top: var(--header-h);
+      left: 0; right: 0;
+      z-index: 2;
       max-width: 44rem;
       margin: 0 auto;
-      padding-top: clamp(4px, 1.5svh, 20px);
+      padding: clamp(4px, 1.5svh, 20px) var(--gutter) 0;
       text-align: center;
     }
     h1 {
@@ -153,6 +157,7 @@
       text-wrap: pretty;
     }
     .scroll-hint {
+      transition: opacity .3s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -296,18 +301,19 @@
     </nav>
   </header>
 
+  <div class="copy" id="copy">
+    <h1>Protection <em>explorer</em></h1>
+    <p class="lede">Get started! Explore these 3 protection needs to get a complete protection analysis.</p>
+    <span class="scroll-hint" id="scroll-hint" aria-hidden="true">
+      Scroll to explore
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+    </span>
+  </div>
+
   <!-- Each step snaps into place and holds its card at the bottom of the screen.
        Step poses: 1 = magnifying glass, 2 = jump, 3 = binoculars. -->
   <main class="steps" id="steps">
     <section class="step" aria-label="Step 1 of 3">
-      <div class="copy" id="copy">
-        <h1>Protection <em>explorer</em></h1>
-        <p class="lede">Get started! Explore these 3 protection needs to get a complete protection analysis.</p>
-        <span class="scroll-hint" aria-hidden="true">
-          Scroll to explore
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
-        </span>
-      </div>
       <article class="card">
         <p class="stat-num">9x</p>
         <div>
@@ -350,6 +356,7 @@
       const scene = document.getElementById('scene');
       const video = document.getElementById('scrub');
       const copy = document.getElementById('copy');
+      const hint = document.getElementById('scroll-hint');
       const steps = [...document.querySelectorAll('.step')];
       const cards = steps.map(step => step.querySelector('.card'));
       const dots = [...document.querySelectorAll('.dot')];
@@ -359,13 +366,13 @@
       const FRAME = { w: 640, h: 360 };
       const CHAR = { x0: 0.30, x1: 0.63, y0: 0.04, y1: 0.94 };
 
-      // The explorer stays in one place for every step: below the headline of step 1 and
+      // The explorer stays in one place for every step: below the fixed headline and
       // above the tallest card, so neither ever covers it.
       function layout() {
         const cw = scene.clientWidth, ch = scene.clientHeight;
         if (!cw || !ch) return;
         // Positions within a step (offsetTop is measured from .steps for both), i.e. on screen when it's snapped.
-        const top0 = copy.offsetTop - steps[0].offsetTop + copy.offsetHeight + 8;
+        const top0 = copy.getBoundingClientRect().bottom + 8;
         const bottom0 = Math.min(...cards.map((card, i) => card.offsetTop - steps[i].offsetTop)) - 8;
         const safeTop = Math.min(top0, ch * 0.45);
         const safeH = Math.max(ch * 0.2, bottom0 - safeTop);
@@ -444,11 +451,14 @@
         const d = video.duration || 4.667;
         target = t / (d - 0.05);
 
+        // The scroll hint only matters before the first scroll
+        hint.style.opacity = Math.max(0, 1 - f * 2).toFixed(2);
+
         // Each card settles in as it reaches its place at the bottom (ease-in on the way out/in)
         cards.forEach((card, k) => {
           const dist = Math.min(1, Math.abs(f - k));
           const e = dist * dist;
-          card.style.opacity = (1 - 0.85 * e).toFixed(3);
+          card.style.opacity = (1 - e).toFixed(3);
           card.style.transform = dist ? `translateY(${(e * 28).toFixed(1)}px) scale(${(1 - 0.03 * e).toFixed(4)})` : '';
         });
 
