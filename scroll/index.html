@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Protection Explorer</title>
+  <meta name="description" content="Explore these 3 protection needs to get a complete protection analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="../hero/explorer.mp4" as="fetch" type="video/mp4" crossorigin />
+  <link rel="preload" href="../hero/explorer-poster.jpg" as="image" />
+  <style>
+    :root {
+      /* Palette sampled from the video, accent from the logo */
+      --sky: #ffffff;
+      --path: #fde6ce;
+      --ink: #12382a;
+      --ink-soft: #3f5d50;
+      --accent: #d52b1e;
+      --stat-red: #c43b2d;
+      --card-ink: #3f3f3f;
+      --card-muted: #7a7a7a;
+      --bench: #4547b8;
+      --wash: 255 252 247;
+      --display: "Fraunces", Georgia, serif;
+      --body: "DM Sans", system-ui, -apple-system, sans-serif;
+      --gutter: clamp(16px, 4vw, 56px);
+      --header-h: 76px;
+    }
+
+    * { box-sizing: border-box; }
+    /* Each step is one screen; scrolling snaps one step at a time */
+    html {
+      scroll-snap-type: y mandatory;
+      background: var(--path);
+    }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ---------- Fixed scene: the explorer stays put while the content scrolls over it ---------- */
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, var(--sky) 0 55%, var(--path) 82%);
+      pointer-events: none;
+    }
+    .scene video {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      user-select: none;
+      /* Feather the bottom edge into the path colour */
+      -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
+              mask-image: linear-gradient(to bottom, #000 88%, transparent);
+    }
+    /* When the frame can't fill the screen, feather its sides as well */
+    .scene video.is-contained {
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
+              mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
+      -webkit-mask-composite: source-in;
+              mask-composite: intersect;
+    }
+
+    /* ---------- Header: logo centred ---------- */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      height: var(--header-h);
+      padding: env(safe-area-inset-top) var(--gutter) 0;
+      pointer-events: none;
+    }
+    .header > * { pointer-events: auto; }
+    .brand { grid-column: 2; display: inline-flex; }
+    .brand img { display: block; width: 44px; height: 44px; }
+    .nav-links {
+      grid-column: 3;
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgb(var(--wash) / .72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 1px 0 rgb(18 56 42 / .06), 0 8px 24px -12px rgb(18 56 42 / .25);
+    }
+    .nav-links a {
+      color: var(--ink);
+      text-decoration: none;
+      font-size: .92rem;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 999px;
+      transition: background .2s ease;
+    }
+    .nav-links a:hover { background: rgb(18 56 42 / .07); }
+
+    /* ---------- Steps ---------- */
+    .steps { position: relative; z-index: 1; }
+    .step {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 100vh;
+      height: 100svh;
+      padding: var(--header-h) var(--gutter) max(20px, env(safe-area-inset-bottom));
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    /* Headline and body stay on screen; only the cards scroll */
+    .copy {
+      position: fixed;
+      top: var(--header-h);
+      left: 0; right: 0;
+      z-index: 2;
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: clamp(4px, 1.5svh, 20px) var(--gutter) 0;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(2.1rem, min(6vw, 7svh), 4.2rem);
+      line-height: 1;
+      letter-spacing: -.025em;
+      font-variation-settings: "opsz" 144;
+      text-wrap: balance;
+    }
+    h1 em {
+      font-style: italic;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .lede {
+      margin: clamp(8px, 1.6svh, 16px) auto 0;
+      max-width: 32rem;
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      line-height: 1.5;
+      color: var(--ink-soft);
+      text-wrap: pretty;
+    }
+    .scroll-hint {
+      transition: opacity .3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: clamp(8px, 1.6svh, 14px);
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+    }
+    .scroll-hint svg { animation: bob 1.8s ease-in-out infinite; }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+
+    /* ---------- Cards (original stat design) ---------- */
+    .card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: clamp(10px, 1vw, 16px);
+      width: 100%;
+      max-width: 40rem;
+      margin-inline: auto;
+      padding: clamp(18px, 2vw, 28px) clamp(18px, 2.2vw, 32px);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 18px 40px -22px rgb(18 56 42 / .5);
+      /* Opacity and lift follow the scroll position (set in the script) */
+      will-change: opacity, transform;
+    }
+    .stat-num {
+      margin: 0;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+      line-height: 1;
+      letter-spacing: -.02em;
+      color: var(--stat-red);
+      font-variation-settings: "opsz" 144;
+    }
+    .stat-text {
+      margin: 0;
+      font-size: clamp(1rem, 1.2vw, 1.15rem);
+      line-height: 1.4;
+      color: var(--card-ink);
+    }
+    .stat-source {
+      margin: 8px 0 0;
+      font-size: clamp(.85rem, 1vw, .95rem);
+      color: var(--card-muted);
+    }
+    .stat-cta {
+      grid-column: 1 / -1;
+      justify-self: end;
+      margin-top: 16px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: var(--stat-red);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: background .2s ease, transform .2s ease;
+    }
+    .stat-cta:hover { background: #a83022; }
+    .stat-cta:active { transform: translateY(1px) scale(.98); }
+
+    /* ---------- Step dots ---------- */
+    .dots {
+      position: fixed;
+      right: max(12px, calc(var(--gutter) / 2));
+      top: 50%;
+      z-index: 3;
+      display: grid;
+      gap: 10px;
+      transform: translateY(-50%);
+    }
+    .dot {
+      width: 12px; height: 12px;
+      padding: 0;
+      border: 2px solid rgb(18 56 42 / .35);
+      border-radius: 50%;
+      background: rgb(var(--wash) / .9);
+      cursor: pointer;
+      transition: background .3s ease, border-color .3s ease, transform .3s ease;
+    }
+    .dot.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.25);
+    }
+
+    /* ---------- Phones ---------- */
+    @media (max-width: 760px) {
+      :root { --header-h: 68px; }
+      .nav-links { display: none; }
+      .brand img { width: 40px; height: 40px; }
+      .stat-cta { margin-top: 12px; padding: 9px 16px; font-size: .95rem; }
+      .dots { right: 6px; gap: 8px; }
+      .dot { width: 10px; height: 10px; }
+    }
+
+    /* Short landscape (phones on their side): compact header, card in one row */
+    @media (min-aspect-ratio: 5/4) and (max-height: 560px) {
+      :root { --header-h: 52px; }
+      .brand img { width: 34px; height: 34px; }
+      .nav-links { padding: 4px; }
+      .nav-links a { padding: 6px 12px; font-size: .85rem; }
+      .copy { padding-top: 0; }
+      h1 { font-size: clamp(1.6rem, 8svh, 2.6rem); }
+      .lede { margin-top: 4px; font-size: .9rem; line-height: 1.4; }
+      .scroll-hint { display: none; }
+      .step { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+      .card { grid-template-columns: auto 1fr auto; align-items: center; padding: 12px 16px; }
+      .stat-text { font-size: .92rem; }
+      .stat-source { margin-top: 2px; font-size: .8rem; }
+      .stat-cta { grid-column: 3; margin: 0 0 0 12px; padding: 8px 14px; font-size: .9rem; white-space: nowrap; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-hint svg { animation: none; }
+    }
+
+    :focus-visible { outline: 3px solid var(--bench); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene" aria-hidden="true">
+    <!-- The poster keeps the illustration visible until the video's frames can be decoded
+         (iOS Safari defers loading video data until playback starts). -->
+    <video id="scrub" data-src="../hero/explorer.mp4" poster="../hero/explorer-poster.jpg" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture tabindex="-1"></video>
+  </div>
+
+  <header class="header">
+    <a class="brand" href="#">
+      <img src="../hero/ge-lion-logo.svg" alt="Great Eastern" width="38" height="38" />
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#">Trails</a>
+      <a href="#">Field guides</a>
+      <a href="#">For parents</a>
+    </nav>
+  </header>
+
+  <div class="copy" id="copy">
+    <h1>Protection <em>explorer</em></h1>
+    <p class="lede">Get started! Explore these 3 protection needs to get a complete protection analysis.</p>
+    <span class="scroll-hint" id="scroll-hint" aria-hidden="true">
+      Scroll to explore
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+    </span>
+  </div>
+
+  <!-- Each step snaps into place and holds its card at the bottom of the screen.
+       Step poses: 1 = magnifying glass, 2 = jump, 3 = binoculars. -->
+  <main class="steps" id="steps">
+    <section class="step" aria-label="Step 1 of 3">
+      <article class="card">
+        <p class="stat-num">9x</p>
+        <div>
+          <p class="stat-text">annual income in life insurance coverage is recommended to protect your family’s lifestyle financially</p>
+          <p class="stat-source">MAS Basic Financial Planning Guide 2023</p>
+        </div>
+        <a class="stat-cta" href="#">Start exploring</a>
+      </article>
+    </section>
+    <section class="step" aria-label="Step 2 of 3">
+      <article class="card">
+        <p class="stat-num">19%</p>
+        <div>
+          <p class="stat-text">increase in household expenditure between the 2017 and 2022 gap protection studies</p>
+          <p class="stat-source">Life Insurance Association of Singapore</p>
+        </div>
+        <a class="stat-cta" href="#">Start exploring</a>
+      </article>
+    </section>
+    <section class="step" aria-label="Step 3 of 3">
+      <article class="card">
+        <p class="stat-num">59%</p>
+        <div>
+          <p class="stat-text">of Singaporeans with some form of life insurance have inadequate coverage</p>
+          <p class="stat-source">Life Insurance Association of Singapore</p>
+        </div>
+        <a class="stat-cta" href="#">Start exploring</a>
+      </article>
+    </section>
+  </main>
+
+  <nav class="dots" aria-label="Steps">
+    <button class="dot is-active" type="button" aria-label="Step 1" aria-current="step"></button>
+    <button class="dot" type="button" aria-label="Step 2"></button>
+    <button class="dot" type="button" aria-label="Step 3"></button>
+  </nav>
+
+  <script>
+    (() => {
+      const scene = document.getElementById('scene');
+      const video = document.getElementById('scrub');
+      const copy = document.getElementById('copy');
+      const hint = document.getElementById('scroll-hint');
+      const steps = [...document.querySelectorAll('.step')];
+      const cards = steps.map(step => step.querySelector('.card'));
+      const dots = [...document.querySelectorAll('.dot')];
+
+      // Where the character lives inside the 16:9 frame (fractions), across the whole clip,
+      // including the jump. Layout keeps this box on screen at every viewport size.
+      const FRAME = { w: 640, h: 360 };
+      const CHAR = { x0: 0.30, x1: 0.63, y0: 0.04, y1: 0.94 };
+
+      // The explorer stays in one place for every step: below the fixed headline and
+      // above the tallest card, so neither ever covers it.
+      function layout() {
+        const cw = scene.clientWidth, ch = scene.clientHeight;
+        if (!cw || !ch) return;
+        // Positions within a step (offsetTop is measured from .steps for both), i.e. on screen when it's snapped.
+        const top0 = copy.getBoundingClientRect().bottom + 8;
+        const bottom0 = Math.min(...cards.map((card, i) => card.offsetTop - steps[i].offsetTop)) - 8;
+        const safeTop = Math.min(top0, ch * 0.45);
+        const safeH = Math.max(ch * 0.2, bottom0 - safeTop);
+
+        const cover = Math.max(cw / FRAME.w, ch / FRAME.h);
+        const charW = (CHAR.x1 - CHAR.x0) * FRAME.w;
+        const charH = (CHAR.y1 - CHAR.y0) * FRAME.h;
+        const s = Math.min(cover, (cw * 0.9) / charW, (safeH * 0.96) / charH);
+        const w = FRAME.w * s, h = FRAME.h * s;
+
+        // Character centred horizontally, feet just above the cards.
+        let left = cw / 2 - ((CHAR.x0 + CHAR.x1) / 2) * w;
+        let top = safeTop + safeH - CHAR.y1 * h;
+        const clampInto = (v, size, box) => size >= box ? Math.min(0, Math.max(box - size, v)) : Math.max(0, Math.min(box - size, v));
+        left = clampInto(left, w, cw);
+        top = clampInto(top, h, ch);
+
+        Object.assign(video.style, {
+          width: w + 'px', height: h + 'px',
+          left: left + 'px', top: top + 'px',
+          objectFit: 'fill'
+        });
+        video.classList.toggle('is-contained', w < cw - 1);
+      }
+
+      new ResizeObserver(layout).observe(document.documentElement);
+      window.addEventListener('resize', layout);
+      layout();
+
+      // ---- Load the clip ----
+      // In memory as a blob so seeks are instant on any host. iOS Safari only decodes frames
+      // once playback has started, so prime it with a muted inline play/pause; if that is
+      // blocked (e.g. Low Power Mode), the first touch tries again. The poster shows meanwhile.
+      const file = video.dataset.src;
+      let primed = false;
+      function prime() {
+        if (primed) return;
+        const p = video.play();
+        if (!p) return;
+        p.then(() => {
+          primed = true;
+          video.pause();
+          video.currentTime = current * (video.duration - 0.05);
+        }).catch(() => {});
+      }
+      function useSource(src) {
+        video.src = src;
+        video.load();
+        prime();
+      }
+      video.addEventListener('loadeddata', () => {
+        video.currentTime = current * (video.duration - 0.05);
+      }, { once: true });
+      window.addEventListener('pointerdown', prime, { passive: true });
+      window.addEventListener('touchstart', prime, { passive: true });
+      fetch(file)
+        .then(r => r.ok ? r.blob() : Promise.reject())
+        .then(blob => useSource(URL.createObjectURL(new Blob([blob], { type: 'video/mp4' }))))
+        .catch(() => useSource(file)); // e.g. opened from file://
+
+      // ---- Scroll drives the pose ----
+      // Each step holds a pose (time in the clip): magnifying glass, jump, binoculars.
+      // Between steps the pose blends along the clip, so the explorer moves as the page scrolls.
+      const POSE_TIMES = [0.55, 1.5, 3.2];
+      let target = 0;   // 0..1 progress being eased toward
+      let current = 0;  // smoothed progress
+      let active = -1;
+      let last = 0;
+      let raf = 0;
+
+      function onScroll() {
+        const stepH = steps[0].offsetHeight || window.innerHeight;
+        const f = Math.min(steps.length - 1, Math.max(0, window.scrollY / stepH));
+        const i = Math.min(steps.length - 2, Math.floor(f));
+        const t = POSE_TIMES[i] + (POSE_TIMES[i + 1] - POSE_TIMES[i]) * (f - i);
+        const d = video.duration || 4.667;
+        target = t / (d - 0.05);
+
+        // The scroll hint only matters before the first scroll
+        hint.style.opacity = Math.max(0, 1 - f * 2).toFixed(2);
+
+        // Each card settles in as it reaches its place at the bottom (ease-in on the way out/in)
+        cards.forEach((card, k) => {
+          const dist = Math.min(1, Math.abs(f - k));
+          const e = dist * dist;
+          card.style.opacity = (1 - e).toFixed(3);
+          card.style.transform = dist ? `translateY(${(e * 28).toFixed(1)}px) scale(${(1 - 0.03 * e).toFixed(4)})` : '';
+        });
+
+        const nowActive = Math.round(f);
+        if (nowActive !== active) {
+          active = nowActive;
+          dots.forEach((dot, k) => {
+            dot.classList.toggle('is-active', k === active);
+            if (k === active) dot.setAttribute('aria-current', 'step');
+            else dot.removeAttribute('aria-current');
+          });
+        }
+        kick();
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      video.addEventListener('loadedmetadata', onScroll);
+      onScroll();
+
+      // ---- One wheel / trackpad gesture = one step ----
+      // Mandatory snap alone would pull a short wheel scroll back to where it started.
+      // Touch keeps native snapping (scroll-snap-stop makes each swipe one step).
+      let pending = null;   // step we're scrolling to
+      let wheelLocked = false, wheelSum = 0, wheelIdle = 0, settleIdle = 0;
+      const smooth = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+      function goTo(k) {
+        k = Math.max(0, Math.min(steps.length - 1, k));
+        pending = k;
+        window.scrollTo({ top: steps[k].offsetTop, behavior: smooth() });
+      }
+      window.addEventListener('scroll', () => {
+        clearTimeout(settleIdle);
+        settleIdle = setTimeout(() => { pending = null; }, 160);
+      }, { passive: true });
+
+      window.addEventListener('wheel', e => {
+        if (e.ctrlKey) return; // pinch-zoom
+        e.preventDefault();
+        // The gesture (including trackpad inertia) ends after a short pause in wheel events
+        clearTimeout(wheelIdle);
+        wheelIdle = setTimeout(() => { wheelLocked = false; wheelSum = 0; }, 180);
+        if (wheelLocked) return;
+        wheelSum += e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1);
+        if (Math.abs(wheelSum) < 8) return;
+        wheelLocked = true;
+        const from = pending ?? Math.round(window.scrollY / steps[0].offsetHeight);
+        goTo(from + Math.sign(wheelSum));
+      }, { passive: false });
+
+      dots.forEach((dot, k) => dot.addEventListener('click', () => goTo(k)));
+
+      // Next frame via rAF, with a timer fallback for browsers that throttle or pause rAF
+      // (some in-app/embedded browsers); whichever fires first runs the tick.
+      function nextFrame(cb) {
+        let done = false;
+        const run = t => { if (!done) { done = true; cancelAnimationFrame(id); clearTimeout(timer); cb(t); } };
+        const id = requestAnimationFrame(run);
+        const timer = setTimeout(() => run(performance.now()), 100);
+      }
+
+      function kick() {
+        if (!raf) { last = 0; raf = 1; nextFrame(tick); }
+      }
+
+      function tick(now) {
+        // Measure dt between frame timestamps only; clamp so a stale or out-of-order
+        // timestamp (e.g. after the tab was hidden) can't overshoot or produce NaN.
+        const dt = last ? Math.min(0.064, Math.max(0, (now - last) / 1000)) : 1 / 60;
+        last = now;
+        // Frame-rate independent easing toward the scroll position
+        current += (target - current) * (1 - Math.exp(-dt * 6));
+        if (!Number.isFinite(current) || Math.abs(target - current) < 0.0005) current = target;
+
+        const d = video.duration;
+        if (d && !video.seeking && video.readyState >= 1) {
+          const t = current * (d - 0.05);
+          if (Math.abs(video.currentTime - t) > 1 / 60) video.currentTime = t;
+        }
+
+        if (current !== target || video.seeking) nextFrame(tick);
+        else raf = 0;
+      }
+    })();
+  </script>
+</body>
+</html>
