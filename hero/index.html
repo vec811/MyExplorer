@@ -3,29 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Wayfinders Field Club</title>
-  <meta name="description" content="Weekend expeditions and real-world quests for curious kids." />
+  <title>Protection Explorer</title>
+  <meta name="description" content="Explore these 3 protection needs to get a complete protection analysis." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="preload" href="explorer.mp4" as="fetch" type="video/mp4" crossorigin />
+  <link rel="preload" href="explorer-poster.jpg" as="image" />
   <style>
     :root {
-      /* Palette sampled from the video */
+      /* Palette sampled from the video, accent from the logo */
       --sky: #ffffff;
       --path: #fde6ce;
-      --forest: #016c43;
       --ink: #12382a;
       --ink-soft: #3f5d50;
-      --shirt: #e5432d;
+      --accent: #d52b1e;
+      --card-ink: #3f3f3f;
       --bench: #4547b8;
-      --rock: #a6a8d3;
       --wash: 255 252 247;
       --display: "Fraunces", Georgia, serif;
       --body: "DM Sans", system-ui, -apple-system, sans-serif;
       --gutter: clamp(16px, 4vw, 56px);
-      --stat-red: #c43b2d;
-      --card-ink: #3f3f3f;
       --overlap: 28px; /* how far the option boxes sit over the scene */
     }
 
@@ -39,94 +37,32 @@
       overflow-x: hidden;
     }
 
-    /* ---------- Hero shell ---------- */
+    /* ---------- Hero: nav / copy / scene / option boxes, stacked on every screen ---------- */
     .hero {
       position: relative;
-      display: grid;
-      grid-template-columns: 100%;
-      grid-template-rows: auto 1fr auto;
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
       min-height: 100svh;
       overflow: hidden;
-      overflow: clip; /* clip, not hidden, so the stacked scene can stay sticky */
+      overflow: clip;
       isolation: isolate;
       touch-action: pan-y;
-      background: linear-gradient(to bottom, var(--sky) 0%, var(--sky) 55%, var(--path) 70%);
-    }
-
-    /* Scene fills the nav + copy rows and runs under the top of the option boxes */
-    .stage {
-      position: relative;
-      grid-row: 1 / 3;
-      grid-column: 1;
-      margin-bottom: calc(-1 * var(--overlap));
-      z-index: 0;
-      overflow: hidden;
-    }
-    .stage video {
-      position: absolute;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      object-position: 36% 40%;
-      opacity: 0;
-      transition: opacity .6s ease;
-      pointer-events: none;
-      user-select: none;
-    }
-    .stage video.is-ready { opacity: 1; }
-    /* Feather the scene's bottom edge into the page */
-    .stage video {
-      -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
-              mask-image: linear-gradient(to bottom, #000 88%, transparent);
-    }
-    /* When the frame can't fill the stage, feather its sides as well */
-    .stage video.is-contained {
-      -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
-              mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
-      -webkit-mask-composite: source-in;
-              mask-composite: intersect;
-    }
-
-    /* Legibility wash behind the copy (right side on wide screens) */
-    .stage::after {
-      content: "";
-      z-index: 0;
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(to left,
-          rgb(var(--wash) / .94) 0%,
-          rgb(var(--wash) / .86) 30%,
-          rgb(var(--wash) / .4) 38%,
-          rgb(var(--wash) / 0) 46%);
-      pointer-events: none;
+      background: var(--sky);
     }
 
     /* ---------- Nav ---------- */
     .nav {
       position: relative;
-      grid-row: 1;
-      grid-column: 1;
       z-index: 2;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: max(18px, env(safe-area-inset-top)) var(--gutter) 0;
+      padding: max(16px, env(safe-area-inset-top)) var(--gutter) 0;
     }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--ink);
-      text-decoration: none;
-      font-family: var(--display);
-      font-weight: 700;
-      font-size: 1.25rem;
-      letter-spacing: -.01em;
-    }
-    .brand svg { width: 34px; height: 34px; flex: none; }
+    .brand { display: inline-flex; }
+    .brand img { display: block; width: 44px; height: 44px; }
     .nav-links {
       display: flex;
       align-items: center;
@@ -148,49 +84,23 @@
       transition: background .2s ease;
     }
     .nav-links a:hover { background: rgb(18 56 42 / .07); }
-    .nav-links a.join {
-      background: var(--ink);
-      color: #fff;
-    }
-    .nav-links a.join:hover { background: var(--forest); }
 
     /* ---------- Copy ---------- */
-    .content {
-      position: relative;
-      grid-row: 2;
-      grid-column: 1;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 16px var(--gutter) 40px;
-    }
     .copy {
-      width: min(32rem, 34vw);
-    }
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0 0 18px;
-      font-size: .8rem;
-      font-weight: 700;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--forest);
-    }
-    .eyebrow::before {
-      content: "";
-      width: 22px; height: 2px;
-      background: currentColor;
-      border-radius: 2px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: clamp(8px, 2.5svh, 28px) var(--gutter) 0;
+      text-align: center;
     }
     h1 {
       margin: 0;
       font-family: var(--display);
       font-weight: 700;
-      font-size: clamp(2.4rem, 4.6vw, 4.8rem);
-      line-height: .98;
+      font-size: clamp(2.1rem, min(6vw, 7svh), 4.2rem);
+      line-height: 1;
       letter-spacing: -.025em;
       font-variation-settings: "opsz" 144;
       text-wrap: balance;
@@ -198,68 +108,70 @@
     h1 em {
       font-style: italic;
       font-weight: 600;
-      color: var(--shirt);
+      color: var(--accent);
     }
     .lede {
-      margin: 22px 0 0;
-      max-width: 30rem;
-      font-size: clamp(1rem, 1.25vw, 1.15rem);
-      line-height: 1.6;
+      margin: clamp(8px, 1.6svh, 16px) auto 0;
+      max-width: 32rem;
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      line-height: 1.5;
       color: var(--ink-soft);
+      text-wrap: pretty;
     }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 32px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 15px 22px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: .98rem;
-      text-decoration: none;
-      transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
-    }
-    .btn:active { transform: translateY(1px) scale(.98); }
-    .btn-primary {
-      background: var(--shirt);
-      color: #fff;
-      box-shadow: 0 10px 24px -10px rgb(229 67 45 / .7);
-    }
-    .btn-primary:hover { background: #cf3420; }
-    .btn-primary svg { transition: transform .2s ease; }
-    .btn-primary:hover svg { transform: translateX(3px); }
-    .btn-ghost {
-      color: var(--ink);
-      background: rgb(var(--wash) / .7);
-      box-shadow: inset 0 0 0 1.5px rgb(18 56 42 / .18);
-    }
-    .btn-ghost:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
 
-    /* ---------- Option boxes ---------- */
-    .options {
+    /* ---------- Scene ---------- */
+    .stage {
       position: relative;
-      grid-row: 3;
-      grid-column: 1;
+      z-index: 0;
+      flex: 1 1 auto;
+      min-height: clamp(220px, 40svh, 360px);
+      overflow: hidden;
+      /* Matches the frame: white sky above, sandy path below */
+      background: linear-gradient(to bottom, var(--sky) 0 55%, var(--path) 82%);
+    }
+    .stage video {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+      /* Feather the bottom edge into the path colour */
+      -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
+              mask-image: linear-gradient(to bottom, #000 88%, transparent);
+    }
+    /* When the frame can't fill the stage, feather its sides as well */
+    .stage video.is-contained {
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
+              mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
+      -webkit-mask-composite: source-in;
+              mask-composite: intersect;
+    }
+
+    /* ---------- Option boxes, right below the scene ---------- */
+    .dock {
+      position: relative;
       z-index: 2;
+      margin-top: calc(-1 * var(--overlap));
+      padding: 0 var(--gutter) max(18px, env(safe-area-inset-bottom));
+      background: linear-gradient(to bottom, transparent var(--overlap), var(--path) var(--overlap));
+    }
+    .options {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: clamp(8px, 1.6vw, 24px);
-      padding: 0 var(--gutter) max(24px, env(safe-area-inset-bottom));
+      gap: clamp(8px, 1.6vw, 20px);
+      max-width: 52rem;
+      margin: 0 auto;
     }
     .option {
       appearance: none;
       border: 0;
       margin: 0;
-      padding: clamp(14px, 1.8vw, 26px) 8px;
+      padding: clamp(14px, 1.8vw, 22px) 6px;
       border-radius: 16px;
       background: #fff;
       color: var(--card-ink);
-      font: 700 clamp(.95rem, 1.4vw, 1.25rem)/1.2 var(--body);
+      font: 700 clamp(.95rem, 1.3vw, 1.2rem)/1.2 var(--body);
       white-space: nowrap;
       cursor: pointer;
       touch-action: pan-y;
@@ -268,34 +180,30 @@
       transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s ease, color .2s ease;
     }
     .option.is-active {
-      transform: translateY(-6px);
-      color: var(--stat-red);
-      box-shadow: 0 0 0 2px rgb(196 59 45 / .35), 0 22px 40px -20px rgb(18 56 42 / .5);
+      transform: translateY(-5px);
+      color: var(--accent);
+      box-shadow: 0 0 0 2px rgb(213 43 30 / .35), 0 22px 40px -20px rgb(18 56 42 / .5);
     }
 
-    /* ---------- Scrub hint / trail ---------- */
+    /* ---------- Scrub hint ---------- */
     .trail {
-      position: absolute;
-      z-index: 1;
-      left: var(--gutter);
-      bottom: calc(var(--overlap) + 20px);
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 10px 16px 10px 12px;
+      gap: 12px;
+      width: fit-content;
+      margin: 14px auto 0;
+      padding: 8px 14px 8px 10px;
       border-radius: 999px;
-      background: rgb(var(--wash) / .78);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 8px 24px -14px rgb(18 56 42 / .35);
+      background: rgb(var(--wash) / .8);
       font-size: .85rem;
       font-weight: 500;
       color: var(--ink);
+      white-space: nowrap;
     }
     .trail-arrow {
       display: grid;
       place-items: center;
-      width: 28px; height: 28px;
+      width: 26px; height: 26px;
       border-radius: 50%;
       background: var(--ink);
       color: #fff;
@@ -303,7 +211,7 @@
     }
     .trail-track {
       position: relative;
-      width: 96px; height: 4px;
+      width: 80px; height: 4px;
       border-radius: 4px;
       background: repeating-linear-gradient(to right, rgb(18 56 42 / .25) 0 6px, transparent 6px 10px);
     }
@@ -314,9 +222,9 @@
       width: 12px; height: 12px;
       margin: -6px -6px 0 0;
       border-radius: 50%;
-      background: var(--shirt);
-      box-shadow: 0 0 0 3px rgb(229 67 45 / .2);
-      transform: translateX(calc(var(--p, 0) * -96px));
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgb(213 43 30 / .2);
+      transform: translateX(calc(var(--p, 0) * -80px));
     }
     .hero.has-scrubbed .trail-arrow { animation: none; }
     .hint-touch { display: none; }
@@ -329,83 +237,31 @@
       50% { transform: translateX(-5px); }
     }
 
-    /* ---------- Stacked layout (portrait / narrow) ---------- */
-    @media (max-aspect-ratio: 5/4), (max-width: 760px) {
-      .hero {
-        display: flex;
-        flex-direction: column;
-        background: linear-gradient(to bottom, var(--sky) 0 40%, var(--path) 60%);
-      }
-      /* The scene stays pinned while the copy scrolls beneath it,
-         so the character is in view when an option box changes its pose. */
-      .stage {
-        position: sticky;
-        top: 0;
-        order: 0;
-        flex: none;
-        height: clamp(280px, 52svh, 640px);
-        margin: 8px 0 0;
-        z-index: 3;
-        background: linear-gradient(to bottom, var(--sky) 0 50%, var(--path) 80%);
-      }
-      .stage::after { display: none; }
-      .nav { order: -1; }
-      .nav-links a:not(.join) { display: none; }
-      .content {
-        order: 1;
-        min-height: 0;
-        flex: 1;
-        align-items: flex-start;
-        justify-content: flex-start;
-        justify-content: center;
-        padding: 4px var(--gutter) 40px;
-        background: var(--path);
-      }
-      .copy { width: 100%; max-width: 34rem; }
-      h1 { font-size: clamp(2.3rem, 9vw, 3.6rem); }
-      .eyebrow { margin-bottom: 12px; }
-      .lede { margin-top: 14px; }
-      .actions { margin-top: 22px; }
-      .options {
-        order: 2;
-        gap: 10px;
-        padding: 4px max(var(--gutter), calc((100% - 34rem) / 2)) max(28px, env(safe-area-inset-bottom));
-        background: var(--path);
-      }
+    /* ---------- Phones ---------- */
+    @media (max-width: 760px) {
+      .nav-links { display: none; }
+      .brand img { width: 40px; height: 40px; }
       .option { padding: 16px 6px; border-radius: 14px; font-size: 1rem; }
       .option.is-active { transform: translateY(-3px); }
-      .trail {
-        left: 50%;
-        bottom: 10px;
-        transform: translateX(-50%);
-        white-space: nowrap;
-      }
     }
 
-    /* Short landscape (phones on their side): keep the copy within one screen */
+    /* Short landscape (phones on their side): keep everything on one screen */
     @media (min-aspect-ratio: 5/4) and (max-height: 560px) {
-      .nav { padding-top: max(10px, env(safe-area-inset-top)); }
+      .nav { padding-top: max(8px, env(safe-area-inset-top)); }
+      .brand img { width: 34px; height: 34px; }
       .nav-links { padding: 4px; }
-      .nav-links a { padding: 7px 12px; font-size: .85rem; }
-      .content { padding-top: 4px; padding-bottom: 8px; }
-      .options { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
-      .eyebrow { margin-bottom: 8px; }
-      h1 { font-size: clamp(1.7rem, 9svh, 3rem); }
-      .lede { margin-top: 10px; font-size: .9rem; line-height: 1.45; }
-      .actions { margin-top: 14px; }
-      .btn { padding: 11px 18px; font-size: .9rem; }
-      .option { padding: 9px 8px; font-size: .9rem; }
-      .trail { padding: 6px 12px 6px 8px; }
-      .trail-arrow { width: 24px; height: 24px; }
-    }
-
-    @media (max-width: 420px) {
-      .btn { flex: 1 1 auto; justify-content: center; }
+      .nav-links a { padding: 6px 12px; font-size: .85rem; }
+      .copy { padding-top: 0; }
+      h1 { font-size: clamp(1.6rem, 8svh, 2.6rem); }
+      .lede { margin-top: 4px; font-size: .9rem; line-height: 1.4; }
+      .stage { min-height: 150px; }
+      .option { padding: 9px 6px; font-size: .9rem; }
+      .dock { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+      .trail { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       .trail-arrow { animation: none; }
-      .stage video { transition: none; }
       .option { transition: none; }
     }
 
@@ -416,24 +272,33 @@
   <main class="hero" id="hero">
     <nav class="nav" aria-label="Primary">
       <a class="brand" href="#">
-        <svg viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="20" r="18" fill="#016c43" />
-          <circle cx="20" cy="20" r="13" fill="none" stroke="#fde6ce" stroke-width="1.5" stroke-dasharray="2 3" />
-          <path d="M20 8 L24 20 L20 32 L16 20 Z" fill="#fde6ce" />
-          <path d="M20 8 L24 20 L16 20 Z" fill="#e5432d" />
-        </svg>
-        Wayfinders
+        <img src="ge-lion-logo.svg" alt="Great Eastern" width="38" height="38" />
       </a>
       <div class="nav-links">
         <a href="#">Trails</a>
         <a href="#">Field guides</a>
         <a href="#">For parents</a>
-        <a class="join" href="#">Join the club</a>
       </div>
     </nav>
 
+    <section class="copy">
+      <h1>Protection <em>explorer</em></h1>
+      <p class="lede">Get started! Explore these 3 protection needs to get a complete protection analysis.</p>
+    </section>
+
     <div class="stage" id="stage">
-      <video id="scrub" data-src="explorer.mp4" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+      <!-- The poster keeps the illustration visible until the video's frames can be decoded
+           (iOS Safari defers loading video data until playback starts). -->
+      <video id="scrub" data-src="explorer.mp4" poster="explorer-poster.jpg" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+    </div>
+
+    <div class="dock">
+      <!-- Each box holds the explorer in one pose: left = magnifying glass, middle = jump, right = binoculars -->
+      <div class="options" id="options" role="group" aria-label="Explorer poses">
+        <button class="option" type="button" data-pose="0" aria-pressed="false">Option 1</button>
+        <button class="option" type="button" data-pose="1" aria-pressed="false">Option 2</button>
+        <button class="option" type="button" data-pose="2" aria-pressed="false">Option 3</button>
+      </div>
       <div class="trail" aria-hidden="true">
         <span class="trail-arrow">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
@@ -443,29 +308,6 @@
         <span class="trail-track"><span class="trail-dot"></span></span>
       </div>
     </div>
-
-    <section class="content">
-      <div class="copy">
-        <p class="eyebrow">Field club · Ages 6–12</p>
-        <h1>Every trail hides a&nbsp;<em>mystery.</em></h1>
-        <p class="lede">Weekend expeditions, pocket field guides and real-world quests that turn curious kids into confident little explorers.</p>
-        <div class="actions">
-          <a class="btn btn-primary" href="#">
-            Start exploring
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </a>
-          <a class="btn btn-ghost" href="#">This season's trails</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Each box holds the explorer in one pose: left = magnifying glass, middle = jump, right = binoculars -->
-    <div class="options" id="options" role="group" aria-label="Explorer poses">
-      <button class="option" type="button" data-pose="0" aria-pressed="false">Option 1</button>
-      <button class="option" type="button" data-pose="1" aria-pressed="false">Option 2</button>
-      <button class="option" type="button" data-pose="2" aria-pressed="false">Option 3</button>
-    </div>
-
   </main>
 
   <script>
@@ -481,32 +323,24 @@
       // including the jump. Layout keeps this box on screen at every viewport size.
       const FRAME = { w: 640, h: 360 };
       const CHAR = { x0: 0.30, x1: 0.63, y0: 0.04, y1: 0.94 };
-      const stackedQuery = matchMedia('(max-aspect-ratio: 5/4), (max-width: 760px)');
 
       function layout() {
         const cw = stage.clientWidth, ch = stage.clientHeight;
         if (!cw || !ch) return;
-        const stacked = stackedQuery.matches;
-        // Wide layouts: the option boxes overlap the bottom of the scene, so fit the
-        // character into the part of the stage above them.
-        const safeH = stacked ? ch : Math.max(ch * 0.5, Math.min(ch,
-          options.getBoundingClientRect().top - stage.getBoundingClientRect().top - 12));
+        // The option boxes overlap the bottom of the scene; the character stands just above them.
+        const safeH = Math.max(ch * 0.5,
+          options.getBoundingClientRect().top - stage.getBoundingClientRect().top - 8);
 
         const cover = Math.max(cw / FRAME.w, ch / FRAME.h);
         const charW = (CHAR.x1 - CHAR.x0) * FRAME.w;
         const charH = (CHAR.y1 - CHAR.y0) * FRAME.h;
         // Never scale past the point where the character would be cropped.
-        const maxForWidth = (cw * (stacked ? 0.9 : 0.5)) / charW;
-        const maxForHeight = (stacked ? ch * 0.8 : safeH * 0.96) / charH;
-        const s = Math.min(cover, maxForWidth, maxForHeight);
+        const s = Math.min(cover, (cw * 0.9) / charW, (safeH * 0.94) / charH);
         const w = FRAME.w * s, h = FRAME.h * s;
 
-        // Put the character's centre at a focal point: centred when stacked, left third beside the copy otherwise.
-        const fx = stacked ? 0.5 : 0.28;
-        const cx = ((CHAR.x0 + CHAR.x1) / 2) * w;
-        let left = fx * cw - cx;
-        // Stacked: feet land at 85% of the scene height. Wide: character vertically centred.
-        let top = stacked ? 0.85 * ch - CHAR.y1 * h : 0.5 * safeH - ((CHAR.y0 + CHAR.y1) / 2) * h;
+        // Character centred horizontally, feet just above the option boxes.
+        let left = cw / 2 - ((CHAR.x0 + CHAR.x1) / 2) * w;
+        let top = safeH - 4 - CHAR.y1 * h;
         const clampInto = (v, size, box) => size >= box ? Math.min(0, Math.max(box - size, v)) : Math.max(0, Math.min(box - size, v));
         left = clampInto(left, w, cw);
         top = clampInto(top, h, ch);
@@ -520,25 +354,43 @@
       }
 
       new ResizeObserver(layout).observe(stage);
-      stackedQuery.addEventListener('change', layout);
       layout();
 
-      // ---- Load the clip into memory so seeks are instant on any host ----
+      // ---- Load the clip ----
+      // In memory as a blob so seeks are instant on any host. iOS Safari only decodes frames
+      // once playback has started, so prime it with a muted inline play/pause; if that is
+      // blocked (e.g. Low Power Mode), the first touch tries again. The poster shows meanwhile.
       const file = video.dataset.src;
+      let primed = false;
+      function prime() {
+        if (primed) return;
+        const p = video.play();
+        if (!p) return;
+        p.then(() => {
+          primed = true;
+          video.pause();
+          video.currentTime = current * (video.duration - 0.05);
+        }).catch(() => {});
+      }
+      function useSource(src) {
+        video.src = src;
+        video.load();
+        prime();
+      }
       video.addEventListener('loadeddata', () => {
         video.currentTime = current * (video.duration - 0.05);
-        video.classList.add('is-ready');
       }, { once: true });
+      window.addEventListener('pointerdown', prime, { passive: true });
       fetch(file)
         .then(r => r.ok ? r.blob() : Promise.reject())
-        .then(blob => { video.src = URL.createObjectURL(blob); })
-        .catch(() => { video.src = file; /* e.g. opened from file:// */ });
+        .then(blob => useSource(URL.createObjectURL(new Blob([blob], { type: 'video/mp4' }))))
+        .catch(() => useSource(file)); // e.g. opened from file://
 
       // ---- Mouse-scrub: right edge = start, left edge = end ----
       let pointerTarget = 0; // 0..1 progress from the cursor
       let target = 0;        // 0..1 progress being eased toward
       let current = 0;       // smoothed progress
-      let last = performance.now();
+      let last = 0;
       let raf = 0;
 
       // ---- Option poses: a box holds the explorer in one pose, overriding the cursor ----
@@ -619,8 +471,17 @@
         retarget();
       });
 
+      // Next frame via rAF, with a timer fallback for browsers that throttle or pause rAF
+      // (some in-app/embedded browsers); whichever fires first runs the tick.
+      function nextFrame(cb) {
+        let done = false;
+        const run = t => { if (!done) { done = true; cancelAnimationFrame(id); clearTimeout(timer); cb(t); } };
+        const id = requestAnimationFrame(run);
+        const timer = setTimeout(() => run(performance.now()), 100);
+      }
+
       function kick() {
-        if (!raf) { last = 0; raf = requestAnimationFrame(tick); }
+        if (!raf) { last = 0; raf = 1; nextFrame(tick); }
       }
 
       function tick(now) {
@@ -641,7 +502,7 @@
           if (Math.abs(video.currentTime - t) > 1 / 60) video.currentTime = t;
         }
 
-        if (current !== target || video.seeking) raf = requestAnimationFrame(tick);
+        if (current !== target || video.seeking) nextFrame(tick);
         else raf = 0;
       }
     })();
