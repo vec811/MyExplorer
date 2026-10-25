@@ -26,8 +26,7 @@
       --gutter: clamp(16px, 4vw, 56px);
       --stat-red: #c43b2d;
       --card-ink: #3f3f3f;
-      --card-muted: #7a7a7a;
-      --overlap: 56px; /* how far the stat cards sit over the scene */
+      --overlap: 28px; /* how far the option boxes sit over the scene */
     }
 
     * { box-sizing: border-box; }
@@ -55,7 +54,7 @@
       background: linear-gradient(to bottom, var(--sky) 0%, var(--sky) 55%, var(--path) 70%);
     }
 
-    /* Scene fills the nav + copy rows and runs under the top of the stat cards */
+    /* Scene fills the nav + copy rows and runs under the top of the option boxes */
     .stage {
       position: relative;
       grid-row: 1 / 3;
@@ -241,71 +240,38 @@
     }
     .btn-ghost:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
 
-    /* ---------- Stat cards ---------- */
-    .stats {
+    /* ---------- Option boxes ---------- */
+    .options {
       position: relative;
       grid-row: 3;
       grid-column: 1;
       z-index: 2;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: clamp(12px, 1.6vw, 24px);
-      margin: 0;
+      gap: clamp(8px, 1.6vw, 24px);
       padding: 0 var(--gutter) max(24px, env(safe-area-inset-bottom));
-      list-style: none;
     }
-    .stat-card {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      grid-template-rows: 1fr auto;
-      column-gap: clamp(10px, 1vw, 16px);
-      padding: clamp(18px, 2vw, 30px) clamp(18px, 2.2vw, 34px);
+    .option {
+      appearance: none;
+      border: 0;
+      margin: 0;
+      padding: clamp(14px, 1.8vw, 26px) 8px;
       border-radius: 16px;
       background: #fff;
-      box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 14px 34px -20px rgb(18 56 42 / .45);
-      transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s ease;
-    }
-    .stat-card.is-active {
-      transform: translateY(-6px);
-      box-shadow: 0 0 0 2px rgb(196 59 45 / .28), 0 22px 40px -20px rgb(18 56 42 / .5);
-    }
-    .stat-num {
-      margin: 0;
-      font-family: var(--display);
-      font-weight: 700;
-      font-size: clamp(1.8rem, 2.5vw, 2.6rem);
-      line-height: 1;
-      letter-spacing: -.02em;
-      color: var(--stat-red);
-      font-variation-settings: "opsz" 144;
-    }
-    .stat-text {
-      margin: 0;
-      font-size: clamp(.95rem, 1.1vw, 1.12rem);
-      line-height: 1.4;
       color: var(--card-ink);
+      font: 700 clamp(.95rem, 1.4vw, 1.25rem)/1.2 var(--body);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: pan-y;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 14px 34px -20px rgb(18 56 42 / .45);
+      transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s ease, color .2s ease;
     }
-    .stat-source {
-      margin: 8px 0 0;
-      font-size: clamp(.82rem, .95vw, .95rem);
-      color: var(--card-muted);
+    .option.is-active {
+      transform: translateY(-6px);
+      color: var(--stat-red);
+      box-shadow: 0 0 0 2px rgb(196 59 45 / .35), 0 22px 40px -20px rgb(18 56 42 / .5);
     }
-    .stat-cta {
-      grid-column: 1 / -1;
-      justify-self: end;
-      align-self: end;
-      margin-top: 18px;
-      padding: 10px 20px;
-      border-radius: 10px;
-      background: var(--stat-red);
-      color: #fff;
-      font-weight: 700;
-      font-size: clamp(.9rem, 1vw, 1rem);
-      text-decoration: none;
-      transition: background .2s ease, transform .2s ease;
-    }
-    .stat-cta:hover { background: #a83022; }
-    .stat-cta:active { transform: translateY(1px) scale(.98); }
 
     /* ---------- Scrub hint / trail ---------- */
     .trail {
@@ -370,8 +336,8 @@
         flex-direction: column;
         background: linear-gradient(to bottom, var(--sky) 0 40%, var(--path) 60%);
       }
-      /* The scene stays pinned while the copy and cards scroll beneath it,
-         so the character is in view when a card changes its pose. */
+      /* The scene stays pinned while the copy scrolls beneath it,
+         so the character is in view when an option box changes its pose. */
       .stage {
         position: sticky;
         top: 0;
@@ -400,16 +366,14 @@
       .eyebrow { margin-bottom: 12px; }
       .lede { margin-top: 14px; }
       .actions { margin-top: 22px; }
-      .stats {
+      .options {
         order: 2;
-        grid-template-columns: minmax(0, 34rem);
-        justify-content: center;
-        gap: 14px;
-        padding-top: 8px;
-        padding-bottom: max(32px, env(safe-area-inset-bottom));
+        gap: 10px;
+        padding: 4px max(var(--gutter), calc((100% - 34rem) / 2)) max(28px, env(safe-area-inset-bottom));
         background: var(--path);
       }
-      .stat-card.is-active { transform: none; }
+      .option { padding: 16px 6px; border-radius: 14px; font-size: 1rem; }
+      .option.is-active { transform: translateY(-3px); }
       .trail {
         left: 50%;
         bottom: 10px;
@@ -423,14 +387,14 @@
       .nav { padding-top: max(10px, env(safe-area-inset-top)); }
       .nav-links { padding: 4px; }
       .nav-links a { padding: 7px 12px; font-size: .85rem; }
-      .content { padding-top: 8px; padding-bottom: 32px; }
+      .content { padding-top: 4px; padding-bottom: 8px; }
+      .options { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
       .eyebrow { margin-bottom: 8px; }
       h1 { font-size: clamp(1.7rem, 9svh, 3rem); }
       .lede { margin-top: 10px; font-size: .9rem; line-height: 1.45; }
       .actions { margin-top: 14px; }
       .btn { padding: 11px 18px; font-size: .9rem; }
-      .stat-card { padding: 14px 16px; }
-      .stat-cta { margin-top: 10px; padding: 8px 14px; }
+      .option { padding: 9px 8px; font-size: .9rem; }
       .trail { padding: 6px 12px 6px 8px; }
       .trail-arrow { width: 24px; height: 24px; }
     }
@@ -442,7 +406,7 @@
     @media (prefers-reduced-motion: reduce) {
       .trail-arrow { animation: none; }
       .stage video { transition: none; }
-      .stat-card { transition: none; }
+      .option { transition: none; }
     }
 
     :focus-visible { outline: 3px solid var(--bench); outline-offset: 3px; }
@@ -495,33 +459,12 @@
       </div>
     </section>
 
-    <!-- Each card holds the explorer in one pose: left = magnifying glass, middle = jump, right = binoculars -->
-    <ul class="stats" id="stats">
-      <li class="stat-card" data-pose="0">
-        <p class="stat-num">9x</p>
-        <div>
-          <p class="stat-text">annual income in life insurance coverage is recommended to protect your family’s lifestyle financially</p>
-          <p class="stat-source">MAS Basic Financial Planning Guide 2023</p>
-        </div>
-        <a class="stat-cta" href="#">Start exploring</a>
-      </li>
-      <li class="stat-card" data-pose="1">
-        <p class="stat-num">19%</p>
-        <div>
-          <p class="stat-text">increase in household expenditure between the 2017 and 2022 gap protection studies</p>
-          <p class="stat-source">Life Insurance Association of Singapore</p>
-        </div>
-        <a class="stat-cta" href="#">Start exploring</a>
-      </li>
-      <li class="stat-card" data-pose="2">
-        <p class="stat-num">59%</p>
-        <div>
-          <p class="stat-text">of Singaporeans with some form of life insurance have inadequate coverage</p>
-          <p class="stat-source">Life Insurance Association of Singapore</p>
-        </div>
-        <a class="stat-cta" href="#">Start exploring</a>
-      </li>
-    </ul>
+    <!-- Each box holds the explorer in one pose: left = magnifying glass, middle = jump, right = binoculars -->
+    <div class="options" id="options" role="group" aria-label="Explorer poses">
+      <button class="option" type="button" data-pose="0" aria-pressed="false">Option 1</button>
+      <button class="option" type="button" data-pose="1" aria-pressed="false">Option 2</button>
+      <button class="option" type="button" data-pose="2" aria-pressed="false">Option 3</button>
+    </div>
 
   </main>
 
@@ -531,8 +474,8 @@
       const stage = document.getElementById('stage');
       const video = document.getElementById('scrub');
       const trail = hero.querySelector('.trail');
-      const stats = document.getElementById('stats');
-      const cards = [...stats.querySelectorAll('.stat-card')];
+      const options = document.getElementById('options');
+      const boxes = [...options.querySelectorAll('.option')];
 
       // Where the character lives inside the 16:9 frame (fractions), across the whole clip,
       // including the jump. Layout keeps this box on screen at every viewport size.
@@ -544,10 +487,10 @@
         const cw = stage.clientWidth, ch = stage.clientHeight;
         if (!cw || !ch) return;
         const stacked = stackedQuery.matches;
-        // Wide layouts: the stat cards overlap the bottom of the scene, so fit the
+        // Wide layouts: the option boxes overlap the bottom of the scene, so fit the
         // character into the part of the stage above them.
         const safeH = stacked ? ch : Math.max(ch * 0.5, Math.min(ch,
-          stats.getBoundingClientRect().top - stage.getBoundingClientRect().top - 12));
+          options.getBoundingClientRect().top - stage.getBoundingClientRect().top - 12));
 
         const cover = Math.max(cw / FRAME.w, ch / FRAME.h);
         const charW = (CHAR.x1 - CHAR.x0) * FRAME.w;
@@ -598,16 +541,20 @@
       let last = performance.now();
       let raf = 0;
 
-      // ---- Card poses: a card holds the explorer in one pose, overriding the cursor ----
+      // ---- Option poses: a box holds the explorer in one pose, overriding the cursor ----
       // Each time sits in the middle of a held pose in the clip: magnifying glass, jump, binoculars.
       const POSE_TIMES = [0.55, 1.5, 3.2];
-      let hoverPose = null, focusPose = null, scrollPose = null;
+      let hoverPose = null, focusPose = null, touchPose = null;
+      const activePose = () => hoverPose ?? focusPose ?? touchPose;
 
       function retarget() {
-        const pose = hoverPose ?? focusPose ?? scrollPose;
+        const pose = activePose();
         const d = video.duration || 4.667;
         target = pose === null ? pointerTarget : Math.min(1, POSE_TIMES[pose] / (d - 0.05));
-        cards.forEach((card, i) => card.classList.toggle('is-active', i === pose));
+        boxes.forEach((box, i) => {
+          box.classList.toggle('is-active', i === pose);
+          box.setAttribute('aria-pressed', String(i === pose));
+        });
         kick();
       }
 
@@ -618,48 +565,44 @@
         retarget();
       }
 
-      cards.forEach((card, i) => {
-        card.addEventListener('pointerenter', e => {
+      boxes.forEach((box, i) => {
+        // Mouse / pen: hold the pose while the pointer is over the box
+        box.addEventListener('pointerenter', e => {
           if (e.pointerType === 'touch') return;
           hoverPose = i; retarget();
         });
-        card.addEventListener('pointerleave', () => {
+        box.addEventListener('pointerleave', () => {
           if (hoverPose === i) { hoverPose = null; retarget(); }
         });
-        // Touch has no hover: a tap picks the card's pose (until scrolling picks another)
-        card.addEventListener('pointerdown', e => {
-          if (e.pointerType !== 'mouse') { scrollPose = i; retarget(); }
+        // Keyboard: hold the pose while the box has visible focus (not after a mouse click)
+        box.addEventListener('focusin', () => {
+          if (box.matches(':focus-visible')) { focusPose = i; retarget(); }
         });
-        card.addEventListener('focusin', () => { focusPose = i; retarget(); });
-        card.addEventListener('focusout', () => {
+        box.addEventListener('focusout', () => {
           if (focusPose === i) { focusPose = null; retarget(); }
         });
       });
 
-      // Stacked layout: the card nearest the middle of the area below the pinned scene sets the pose
-      let scrollQueued = false;
-      function updateScrollPose() {
-        scrollQueued = false;
-        let best = null;
-        if (stackedQuery.matches) {
-          const top = stage.getBoundingClientRect().bottom, bottom = window.innerHeight;
-          const mid = (top + bottom) / 2;
-          let bestDist = Infinity;
-          cards.forEach((card, i) => {
-            const r = card.getBoundingClientRect();
-            const visible = Math.min(r.bottom, bottom) - Math.max(r.top, top);
-            if (visible < r.height * 0.5) return;
-            const dist = Math.abs((r.top + r.bottom) / 2 - mid);
-            if (dist < bestDist) { bestDist = dist; best = i; }
-          });
+      // Touch: touching a box acts like hovering it, and sliding a finger along the row
+      // switches boxes. The pose stays after the finger lifts, until a touch lands elsewhere.
+      function touchPoseAt(x, y) {
+        const box = document.elementFromPoint(x, y)?.closest('.option');
+        if (box && box.parentElement === options) {
+          const i = boxes.indexOf(box);
+          if (i !== touchPose) { touchPose = i; retarget(); }
         }
-        if (best !== scrollPose) { scrollPose = best; retarget(); }
       }
-      const queueScrollPose = () => {
-        if (!scrollQueued) { scrollQueued = true; requestAnimationFrame(updateScrollPose); }
-      };
-      window.addEventListener('scroll', queueScrollPose, { passive: true });
-      window.addEventListener('resize', queueScrollPose);
+      options.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse') touchPoseAt(e.clientX, e.clientY);
+      });
+      options.addEventListener('pointermove', e => {
+        if (e.pointerType !== 'mouse') touchPoseAt(e.clientX, e.clientY);
+      }, { passive: true });
+      document.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse' && touchPose !== null && !options.contains(e.target)) {
+          touchPose = null; retarget();
+        }
+      });
 
       window.addEventListener('pointermove', e => {
         if (e.pointerType === 'touch' && !e.isPrimary) return;
@@ -685,8 +628,8 @@
         // timestamp (e.g. after the tab was hidden) can't overshoot or produce NaN.
         const dt = last ? Math.min(0.064, Math.max(0, (now - last) / 1000)) : 1 / 60;
         last = now;
-        // Frame-rate independent easing; card poses ease a little slower so the transition reads
-        const rate = (hoverPose ?? focusPose ?? scrollPose) === null ? 9 : 5;
+        // Frame-rate independent easing; option poses ease a little slower so the transition reads
+        const rate = activePose() === null ? 9 : 5;
         current += (target - current) * (1 - Math.exp(-dt * rate));
         if (!Number.isFinite(current) || Math.abs(target - current) < 0.0005) current = target;
 
