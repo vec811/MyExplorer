@@ -62,6 +62,17 @@
       -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
               mask-image: linear-gradient(to bottom, #000 88%, transparent);
     }
+    /* Wide screens: the frame starts just under the logo; feather that top edge too */
+    .scene video.has-band {
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 88%, transparent);
+              mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 88%, transparent);
+    }
+    .scene video.has-band.is-contained {
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 88%, transparent);
+              mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 88%, transparent);
+      -webkit-mask-composite: source-in;
+              mask-composite: intersect;
+    }
     /* When the frame can't fill the screen, feather its sides as well */
     .scene video.is-contained {
       -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent), linear-gradient(to bottom, #000 88%, transparent);
@@ -85,29 +96,6 @@
     .header > * { pointer-events: auto; }
     .brand { grid-column: 2; display: inline-flex; }
     .brand img { display: block; width: 44px; height: 44px; }
-    .nav-links {
-      grid-column: 3;
-      justify-self: end;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px;
-      border-radius: 999px;
-      background: rgb(var(--wash) / .72);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 1px 0 rgb(18 56 42 / .06), 0 8px 24px -12px rgb(18 56 42 / .25);
-    }
-    .nav-links a {
-      color: var(--ink);
-      text-decoration: none;
-      font-size: .92rem;
-      font-weight: 500;
-      padding: 9px 14px;
-      border-radius: 999px;
-      transition: background .2s ease;
-    }
-    .nav-links a:hover { background: rgb(18 56 42 / .07); }
 
     /* ---------- Steps ---------- */
     .steps { position: relative; z-index: 1; }
@@ -252,7 +240,6 @@
     /* ---------- Phones ---------- */
     @media (max-width: 760px) {
       :root { --header-h: 68px; }
-      .nav-links { display: none; }
       .brand img { width: 40px; height: 40px; }
       .stat-cta { margin-top: 12px; padding: 9px 16px; font-size: .95rem; }
       .dots { right: 6px; gap: 8px; }
@@ -263,8 +250,6 @@
     @media (min-aspect-ratio: 5/4) and (max-height: 560px) {
       :root { --header-h: 52px; }
       .brand img { width: 34px; height: 34px; }
-      .nav-links { padding: 4px; }
-      .nav-links a { padding: 6px 12px; font-size: .85rem; }
       .copy { padding-top: 0; }
       h1 { font-size: clamp(1.6rem, 8svh, 2.6rem); }
       .lede { margin-top: 4px; font-size: .9rem; line-height: 1.4; }
@@ -274,6 +259,36 @@
       .stat-text { font-size: .92rem; }
       .stat-source { margin-top: 2px; font-size: .8rem; }
       .stat-cta { grid-column: 3; margin: 0 0 0 12px; padding: 8px 14px; font-size: .9rem; white-space: nowrap; }
+    }
+
+    /* Tablets and desktops: narrower cards */
+    @media (min-width: 761px) {
+      .card { max-width: 28rem; }
+    }
+
+    /* Landscape tablets and desktops: the explorer fills the screen in the middle,
+       headline and body sit top-left over the sky, cards bottom-right over the path. */
+    @media (min-width: 761px) and (min-aspect-ratio: 1/1) {
+      .copy {
+        left: var(--gutter);
+        right: auto;
+        width: min(26rem, 27vw);
+        max-width: none;
+        margin: 0;
+        padding: clamp(8px, 2svh, 24px) 0 0;
+        text-align: left;
+      }
+      h1 { font-size: clamp(1.8rem, min(3.6vw, 8svh), 3.6rem); }
+      .lede { margin-left: 0; font-size: clamp(.95rem, 1.2vw, 1.1rem); }
+      .step { align-items: flex-end; }
+      .card {
+        grid-template-columns: auto 1fr;
+        align-items: start;
+        width: clamp(16rem, 27vw, 24rem);
+        max-width: none;
+        margin-inline: 0;
+      }
+      .stat-cta { grid-column: 1 / -1; margin: 14px 0 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -294,11 +309,6 @@
     <a class="brand" href="#">
       <img src="ge-lion-logo.svg" alt="Great Eastern" width="38" height="38" />
     </a>
-    <nav class="nav-links" aria-label="Primary">
-      <a href="#">Trails</a>
-      <a href="#">Field guides</a>
-      <a href="#">For parents</a>
-    </nav>
   </header>
 
   <div class="copy" id="copy">
@@ -368,27 +378,48 @@
 
       // The explorer stays in one place for every step: below the fixed headline and
       // above the tallest card, so neither ever covers it.
+      const wideQuery = matchMedia('(min-width: 761px) and (min-aspect-ratio: 1/1)');
+      const header = document.querySelector('.header');
+      const clampInto = (v, size, box) => size >= box ? Math.min(0, Math.max(box - size, v)) : Math.max(0, Math.min(box - size, v));
+
       function layout() {
         const cw = scene.clientWidth, ch = scene.clientHeight;
         if (!cw || !ch) return;
-        // Positions within a step (offsetTop is measured from .steps for both), i.e. on screen when it's snapped.
-        const top0 = copy.getBoundingClientRect().bottom + 8;
-        const bottom0 = Math.min(...cards.map((card, i) => card.offsetTop - steps[i].offsetTop)) - 8;
-        const safeTop = Math.min(top0, ch * 0.45);
-        const safeH = Math.max(ch * 0.2, bottom0 - safeTop);
+        let w, h, left, top;
 
-        const cover = Math.max(cw / FRAME.w, ch / FRAME.h);
-        const charW = (CHAR.x1 - CHAR.x0) * FRAME.w;
-        const charH = (CHAR.y1 - CHAR.y0) * FRAME.h;
-        const s = Math.min(cover, (cw * 0.9) / charW, (safeH * 0.96) / charH);
-        const w = FRAME.w * s, h = FRAME.h * s;
+        if (wideQuery.matches) {
+          // Landscape tablets / desktops: the explorer is as big as the screen allows, head just
+          // under the logo and the frame running to the bottom edge. The headline and cards sit
+          // beside him (left / right), so nothing covers him.
+          const headTop = header.offsetHeight + 4;
+          // On squarer screens the gap between the headline column and the card column limits
+          // his width; the frame stays on the bottom edge and any spare top fades into the sky.
+          const copyRight = copy.getBoundingClientRect().right;
+          const cardLeft = Math.min(...cards.map(card => card.getBoundingClientRect().left));
+          const halfGap = Math.min(cw / 2 - copyRight, cardLeft - cw / 2) - 8;
+          const hForWidth = (2 * halfGap) / ((CHAR.x1 - CHAR.x0) * FRAME.w / FRAME.h);
+          h = Math.max(ch * 0.4, Math.min((ch - headTop) / (1 - CHAR.y0), hForWidth));
+          w = h * FRAME.w / FRAME.h;
+          top = ch - h;
+          left = clampInto(cw / 2 - ((CHAR.x0 + CHAR.x1) / 2) * w, w, cw);
+        } else {
+          // Phones / portrait: the explorer fits between the headline and the tallest card.
+          const top0 = copy.getBoundingClientRect().bottom + 8;
+          // Positions within a step (offsetTop is measured from .steps for both), i.e. on screen when it's snapped.
+          const bottom0 = Math.min(...cards.map((card, i) => card.offsetTop - steps[i].offsetTop)) - 8;
+          const safeTop = Math.min(top0, ch * 0.45);
+          const safeH = Math.max(ch * 0.2, bottom0 - safeTop);
 
-        // Character centred horizontally, feet just above the cards.
-        let left = cw / 2 - ((CHAR.x0 + CHAR.x1) / 2) * w;
-        let top = safeTop + safeH - CHAR.y1 * h;
-        const clampInto = (v, size, box) => size >= box ? Math.min(0, Math.max(box - size, v)) : Math.max(0, Math.min(box - size, v));
-        left = clampInto(left, w, cw);
-        top = clampInto(top, h, ch);
+          const cover = Math.max(cw / FRAME.w, ch / FRAME.h);
+          const charW = (CHAR.x1 - CHAR.x0) * FRAME.w;
+          const charH = (CHAR.y1 - CHAR.y0) * FRAME.h;
+          const s = Math.min(cover, (cw * 0.9) / charW, (safeH * 0.96) / charH);
+          w = FRAME.w * s; h = FRAME.h * s;
+
+          // Character centred horizontally, feet just above the cards.
+          left = clampInto(cw / 2 - ((CHAR.x0 + CHAR.x1) / 2) * w, w, cw);
+          top = clampInto(safeTop + safeH - CHAR.y1 * h, h, ch);
+        }
 
         Object.assign(video.style, {
           width: w + 'px', height: h + 'px',
@@ -396,10 +427,12 @@
           objectFit: 'fill'
         });
         video.classList.toggle('is-contained', w < cw - 1);
+        video.classList.toggle('has-band', top > 1);
       }
 
       new ResizeObserver(layout).observe(document.documentElement);
       window.addEventListener('resize', layout);
+      wideQuery.addEventListener('change', layout);
       layout();
 
       // ---- Load the clip ----
