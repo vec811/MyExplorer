@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Protection Explorer</title>
+  <meta name="description" content="Explore these 3 protection needs to get a complete protection analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="park-background.svg" as="image" />
+  <link rel="preload" href="pose-study.svg" as="image" />
+  <link rel="preload" href="pose-discover.svg" as="image" />
+  <link rel="preload" href="pose-explore.svg" as="image" />
+  <style>
+    :root {
+      /* Palette from the illustration, accent from the logo */
+      --sky: #ffffff;
+      --path: #fee6cf;
+      --ink: #12382a;
+      --ink-soft: #3f5d50;
+      --accent: #d52b1e;
+      --bench: #4547b8;
+      --wash: 255 255 255;
+      --display: "Fraunces", Georgia, serif;
+      --body: "DM Sans", system-ui, -apple-system, sans-serif;
+      --gutter: clamp(16px, 4vw, 56px);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--path);
+    }
+    body {
+      color: var(--ink);
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- Scene: the park always fills the screen, the explorer stands in the middle ---------- */
+    .scene {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+      background: var(--sky);
+    }
+    .park {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 62%;
+      /* A little oversized so the parallax shift never shows an edge */
+      transform: translate3d(calc(var(--par, 0) * -1.4%), 0, 0) scale(1.05);
+      transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+      user-select: none;
+      pointer-events: none;
+    }
+    .explorer {
+      position: absolute;
+      inset: 0;
+      transform: translate3d(calc(var(--par, 0) * .6%), 0, 0);
+      transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+      pointer-events: none;
+    }
+    .pose {
+      position: absolute;
+      max-width: none;
+      opacity: 0;
+      transform: translateY(16px) scale(.985);
+      transform-origin: 50% 100%;
+      transition: opacity .3s ease, transform .5s cubic-bezier(.2, .9, .3, 1.25);
+      user-select: none;
+    }
+    /* The jump arrives with a bigger hop */
+    .pose[data-pose="1"] { transform: translateY(40px) scale(.98); }
+    .pose.is-active {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ---------- Copy ---------- */
+    .copy {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      left: var(--gutter);
+      z-index: 2;
+      width: clamp(16rem, 30vw, 27rem);
+    }
+    .brand { display: inline-flex; }
+    .brand img { display: block; width: 44px; height: 44px; }
+    h1 {
+      margin: clamp(10px, 2svh, 22px) 0 0;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.9rem, min(3.8vw, 8svh), 3.8rem);
+      line-height: 1;
+      letter-spacing: -.025em;
+      font-variation-settings: "opsz" 144;
+      text-wrap: balance;
+    }
+    h1 em {
+      font-style: italic;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .lede {
+      margin: clamp(8px, 1.4svh, 14px) 0 0;
+      font-size: clamp(.95rem, 1.2vw, 1.1rem);
+      line-height: 1.5;
+      color: var(--ink-soft);
+      text-wrap: pretty;
+    }
+
+    /* Pose switcher: mirrors the cursor zones (left = Explore, right = Study) and works as a fallback */
+    .poses {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: clamp(12px, 2svh, 20px);
+      padding: 4px;
+      border-radius: 999px;
+      background: rgb(var(--wash) / .85);
+      box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 10px 26px -16px rgb(18 56 42 / .45);
+    }
+    .poses button {
+      appearance: none;
+      border: 0;
+      margin: 0;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--ink-soft);
+      font: 600 .9rem/1 var(--body);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .25s ease, color .25s ease;
+    }
+    .poses button[aria-pressed="true"] {
+      background: var(--accent);
+      color: #fff;
+    }
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      margin-top: 10px;
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+    }
+    .hint svg { flex: none; }
+    .hint button {
+      appearance: none;
+      border: 0;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: #fff;
+      font: 600 .85rem/1 var(--body);
+      cursor: pointer;
+    }
+    .hint [hidden] { display: none; }
+
+    /* ---------- Portrait (phones, tablets upright): copy centred on top ---------- */
+    @media (max-aspect-ratio: 1/1) {
+      .copy {
+        left: 0;
+        right: 0;
+        width: auto;
+        max-width: 34rem;
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+        text-align: center;
+      }
+      .brand img { width: 40px; height: 40px; }
+      h1 { font-size: clamp(2rem, 9vw, 3.4rem); }
+      .hint { justify-content: center; }
+    }
+
+    /* Short landscape (phones on their side): tighter copy */
+    @media (min-aspect-ratio: 1/1) and (max-height: 560px) {
+      .brand img { width: 32px; height: 32px; }
+      h1 { margin-top: 6px; }
+      .lede { font-size: .85rem; line-height: 1.35; }
+      .poses { margin-top: 8px; }
+      .poses button { padding: 6px 10px; font-size: .8rem; }
+      .hint { margin-top: 4px; min-height: 26px; font-size: .78rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .park, .explorer { transition: none; transform: none; }
+      .park { transform: scale(1.05); }
+      .pose, .pose[data-pose="1"] { transform: none; transition: opacity .2s linear; }
+    }
+
+    :focus-visible { outline: 3px solid var(--bench); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main class="scene" id="scene">
+    <img class="park" src="park-background.svg" alt="" aria-hidden="true" />
+    <!-- Poses in clip order: 0 = study (magnifying glass), 1 = discover (jump), 2 = explore (binoculars) -->
+    <div class="explorer" id="explorer" aria-hidden="true">
+      <img class="pose" data-pose="0" src="pose-study.svg" alt="" />
+      <img class="pose is-active" data-pose="1" src="pose-discover.svg" alt="" />
+      <img class="pose" data-pose="2" src="pose-explore.svg" alt="" />
+    </div>
+  </main>
+
+  <section class="copy" id="copy">
+    <a class="brand" href="#"><img src="ge-lion-logo.svg" alt="Great Eastern" width="38" height="38" /></a>
+    <h1>Protection <em>explorer</em></h1>
+    <p class="lede">Get started! Explore these 3 protection needs to get a complete protection analysis.</p>
+    <div class="poses" role="group" aria-label="Explorer pose">
+      <button type="button" data-pose="2" aria-pressed="false">Explore</button>
+      <button type="button" data-pose="1" aria-pressed="true">Discover</button>
+      <button type="button" data-pose="0" aria-pressed="false">Study</button>
+    </div>
+    <p class="hint" id="hint" aria-live="polite">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8l-4 4 4 4M17 8l4 4-4 4M3 12h18" /></svg>
+      <span id="hint-text">Move your mouse left and right to explore</span>
+      <button type="button" id="enable-tilt" hidden>Enable tilt</button>
+    </p>
+  </section>
+
+  <script>
+    (() => {
+      const scene = document.getElementById('scene');
+      const explorer = document.getElementById('explorer');
+      const copy = document.getElementById('copy');
+      const poseImgs = [...explorer.querySelectorAll('.pose')];
+      const buttons = [...document.querySelectorAll('.poses button')];
+      const hintText = document.getElementById('hint-text');
+      const enableTilt = document.getElementById('enable-tilt');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+      // Artwork geometry in SVG units. All three poses share one scale; each is aligned by the
+      // top of its hat and centred on a point between head and torso so the figure stays put.
+      // `keep` is the side whose prop must stay on screen when the figure is wider than the screen.
+      const POSES = [
+        { w: 616, h: 925, top: 0,  anchor: 305, x0: 2,  x1: 614, keep: 'left'  }, // study: magnifying glass
+        { w: 577, h: 955, top: 29, anchor: 265, x0: 12, x1: 563, keep: 'right' }, // discover: thumbs-up
+        { w: 527, h: 926, top: 0,  anchor: 210, x0: 0,  x1: 526, keep: 'right' }  // explore: binoculars
+      ];
+      const FIGURE_H = 940;      // reference figure height
+      const HALF_EXTENT = 316;   // widest reach either side of the anchor (binoculars)
+      const HEAD_TOP = 0.33;     // where the hat sits on wide screens (fraction of height)
+      const VISIBLE = 0.58;      // how much of the figure shows above the bottom edge
+
+      function layout() {
+        const vw = scene.clientWidth, vh = scene.clientHeight;
+        if (!vw || !vh) return;
+        const portrait = vw <= vh;
+
+        // As big as the reference composition. On narrow screens he may outgrow the width a
+        // little (each pose then shifts just enough to keep its prop in view, below).
+        const sByHeight = (vh * (1 - HEAD_TOP)) / (VISIBLE * FIGURE_H);
+        const sByWidth = (vw / 2 - 8) / HALF_EXTENT * (portrait ? 1.25 : 1);
+        const s = Math.min(sByHeight, sByWidth);
+        const figH = FIGURE_H * s;
+
+        // Narrow screens show a bit more of him (up to 2/3) so the head rises toward the middle,
+        // but always below the headline when it sits above him.
+        const minTop = portrait ? copy.getBoundingClientRect().bottom + 16 : vh * 0.12;
+        const visible = Math.min(2 / 3, Math.max(VISIBLE, (vh - Math.max(minTop, vh * HEAD_TOP)) / figH));
+        const headTop = vh - visible * figH;
+
+        // Landscape: if the headline column reaches down past his head, slide him right just
+        // enough to clear it (never so far that the binoculars leave the screen).
+        let cx = vw / 2;
+        if (!portrait) {
+          const c = copy.getBoundingClientRect();
+          if (c.bottom > headTop) {
+            const leftReach = Math.max(...POSES.map(p => (p.anchor - p.x0) * s));
+            const rightReach = Math.max(...POSES.map(p => (p.x1 - p.anchor) * s));
+            cx = Math.min(Math.max(cx, c.right + 12 + leftReach), vw - 6 - rightReach);
+          }
+        }
+
+        poseImgs.forEach((img, i) => {
+          const p = POSES[i];
+          let left = cx - p.anchor * s;
+          const keepLeft = 6 - p.x0 * s, keepRight = vw - 6 - p.x1 * s;
+          if (p.keep === 'left') left = Math.max(left, keepLeft);
+          else left = Math.min(left, keepRight);
+          Object.assign(img.style, {
+            width: p.w * s + 'px',
+            height: p.h * s + 'px',
+            left: left + 'px',
+            top: headTop - p.top * s + 'px'
+          });
+        });
+      }
+      new ResizeObserver(layout).observe(scene);
+      new ResizeObserver(layout).observe(copy);
+      layout();
+
+      // ---- Pose state ----
+      let pose = 1;
+      function setPose(next) {
+        if (next === pose) return;
+        pose = next;
+        poseImgs.forEach((img, i) => img.classList.toggle('is-active', i === pose));
+        buttons.forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.pose === pose)));
+      }
+      const setParallax = p => {
+        if (reducedMotion.matches) return;
+        scene.style.setProperty('--par', Math.max(-1, Math.min(1, p)).toFixed(3));
+      };
+
+      // Zones like the first version: cursor/finger on the right = start (study),
+      // middle = discover, left = end (explore). Each input only changes the pose when it
+      // crosses into a new zone, so a tapped/clicked pose stays until the input moves on.
+      const zoneFromX = (x, w) => (x > w * 2 / 3 ? 0 : x < w / 3 ? 2 : 1);
+      let pointerZone = null;
+      function onPointer(e) {
+        const zone = zoneFromX(e.clientX, window.innerWidth);
+        if (zone !== pointerZone) { pointerZone = zone; setPose(zone); }
+        setParallax((e.clientX / window.innerWidth) * 2 - 1);
+      }
+
+      buttons.forEach(b => b.addEventListener('click', () => setPose(+b.dataset.pose)));
+      window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') setPose(Math.min(2, pose + 1));
+        else if (e.key === 'ArrowRight') setPose(Math.max(0, pose - 1));
+      });
+
+      const isTouch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+      if (!isTouch) {
+        // ---- Desktop: the mouse position picks the pose ----
+        window.addEventListener('pointermove', e => {
+          if (e.pointerType === 'mouse' || e.pointerType === 'pen') onPointer(e);
+        }, { passive: true });
+      } else {
+        // ---- Phones and tablets: tilting the device picks the pose ----
+        // Dragging a finger across the scene works too, as a fallback.
+        scene.addEventListener('pointerdown', onPointer, { passive: true });
+        scene.addEventListener('pointermove', onPointer, { passive: true });
+        hintText.textContent = 'Drag left or right to explore';
+
+        let baseline = null, tilt = 0, gyroZone = null, gyroSeen = false;
+        // window.orientation first: iOS and Android agree on it (90 = turned anticlockwise),
+        // while screen.orientation.angle has been reported with the opposite sign on iOS.
+        const screenAngle = () => {
+          const a = typeof window.orientation === 'number'
+            ? window.orientation
+            : (screen.orientation && typeof screen.orientation.angle === 'number' ? screen.orientation.angle : 0);
+          return ((a % 360) + 360) % 360;
+        };
+        const resetTilt = () => { baseline = null; tilt = 0; };
+        window.addEventListener('orientationchange', resetTilt);
+        if (screen.orientation) screen.orientation.addEventListener('change', resetTilt);
+
+        function onOrientation(e) {
+          if (e.beta == null || e.gamma == null) return;
+          if (!gyroSeen) { gyroSeen = true; hintText.textContent = 'Tilt your device to explore'; }
+          // Gravity in device coordinates, then its component along the screen's x axis,
+          // so tilting left/right works however the device is held or rotated.
+          const b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
+          const gx = Math.cos(b) * Math.sin(g), gy = -Math.sin(b);
+          const th = screenAngle() * Math.PI / 180;
+          const sx = gx * Math.cos(th) - gy * Math.sin(th);
+          const deg = Math.asin(Math.max(-1, Math.min(1, sx))) * 180 / Math.PI; // + = right edge down
+
+          // Neutral is however the device was held at the start, slowly following its drift
+          if (baseline === null) baseline = deg;
+          baseline += (deg - baseline) * 0.0005;
+          tilt += (deg - baseline - tilt) * 0.25;
+
+          // Tilt right = study, level = discover, tilt left = explore (with hysteresis)
+          let zone = gyroZone ?? 1;
+          if (zone === 1) zone = tilt > 10 ? 0 : tilt < -10 ? 2 : 1;
+          else if (zone === 0 && tilt < 6) zone = tilt < -10 ? 2 : 1;
+          else if (zone === 2 && tilt > -6) zone = tilt > 10 ? 0 : 1;
+          if (zone !== gyroZone) { gyroZone = zone; setPose(zone); }
+          setParallax(tilt / 25);
+        }
+        if (typeof DeviceOrientationEvent !== 'undefined') {
+          // Listen straight away (Android sends readings without asking). Where the browser
+          // gates motion behind a permission (iOS), readings only start after a tap, so offer
+          // the button if nothing has arrived shortly after load.
+          window.addEventListener('deviceorientation', onOrientation);
+          if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            setTimeout(() => { if (!gyroSeen) enableTilt.hidden = false; }, 800);
+            enableTilt.addEventListener('click', () => {
+              DeviceOrientationEvent.requestPermission()
+                .then(state => {
+                  enableTilt.hidden = true;
+                  if (state !== 'granted') hintText.textContent = 'Drag left or right to explore';
+                })
+                .catch(() => { enableTilt.hidden = true; });
+            });
+          }
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
