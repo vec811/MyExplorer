@@ -260,15 +260,16 @@
 
         // As big as the reference composition. On narrow screens he may outgrow the width a
         // little (each pose then shifts just enough to keep its prop in view, below).
-        const sByHeight = (vh * (1 - HEAD_TOP)) / (VISIBLE * FIGURE_H);
+        // Portrait: his head must start below the headline block above him.
+        const headMin = portrait ? Math.max(vh * HEAD_TOP, copy.getBoundingClientRect().bottom + 16) : vh * HEAD_TOP;
+        const sByHeight = (vh - headMin) / (VISIBLE * FIGURE_H);
         const sByWidth = (vw / 2 - 8) / HALF_EXTENT * (portrait ? 1.25 : 1);
         const s = Math.min(sByHeight, sByWidth);
         const figH = FIGURE_H * s;
 
-        // Narrow screens show a bit more of him (up to 2/3) so the head rises toward the middle,
-        // but always below the headline when it sits above him.
-        const minTop = portrait ? copy.getBoundingClientRect().bottom + 16 : vh * 0.12;
-        const visible = Math.min(2 / 3, Math.max(VISIBLE, (vh - Math.max(minTop, vh * HEAD_TOP)) / figH));
+        // When the width limits him, show a bit more of him (up to 2/3) so the head rises
+        // toward the middle, still below headMin.
+        const visible = Math.min(2 / 3, Math.max(VISIBLE, (vh - headMin) / figH));
         const headTop = vh - visible * figH;
 
         // Landscape: if the headline column reaches down past his head, slide him right just
